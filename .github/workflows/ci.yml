@@ -118,4 +118,4 @@ jobs:
             sleep 1
           done
           curl --fail --silent http://127.0.0.1:8000/api/health
-          curl --fail --silent http://127.0.0.1:8000/ | grep --quiet "Atlas Agent"
+          curl --fail --silent http://127.0.0.1:8000/ | grep --quiet 'id="taskForm"'
