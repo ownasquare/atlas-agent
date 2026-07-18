@@ -1,0 +1,32 @@
+# Changelog
+
+Notable user-facing changes are recorded here. Atlas follows semantic versioning while its public
+interfaces continue to mature.
+
+## [0.3.0] - 2026-07-18
+
+### Added
+
+- Secret-safe `atlas doctor` readiness checks.
+- Public extension seams and a runnable custom-tool example.
+- Getting-started, troubleshooting, contribution, security, and community guidance.
+- Accessible compact information controls and safer structured result rendering.
+
+### Changed
+
+- Code execution now defaults to disabled and requires explicit Docker opt-in.
+- The workspace centers the task, progress, and reviewed result while disclosing secondary details
+  only when useful.
+- Continuous integration uses locked dependency installation and current supported Python versions.
+
+## [0.2.0] - 2026-07-17
+
+- Reworked the browser into a responsive local task workspace.
+- Added recent tasks, plain-language approvals, saved context, and confined file preview/download.
+- Added focused workspace API and browser contracts.
+
+## [0.1.0] - 2026-07-17
+
+- Added the initial LangGraph planner, tool loop, reviewer, and memory workflow.
+- Added guarded search, calculator, file, and Docker Python tools.
+- Added CLI, FastAPI/SSE, deterministic evaluations, packaging, and local delivery configuration.

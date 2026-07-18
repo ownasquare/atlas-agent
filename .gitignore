@@ -1,0 +1,23 @@
+.DS_Store
+.env
+.env.*
+!.env.example
+.atlas/
+.venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+.coverage
+coverage.xml
+htmlcov/
+.mypy_cache/
+.pytest_cache/
+.ruff_cache/
+dist/
+build/
+test-results/
+
+# Local execution records are intentionally excluded from the public project.
+docs/atlas-agent/
+docs/handoffs/
+docs/superpowers/

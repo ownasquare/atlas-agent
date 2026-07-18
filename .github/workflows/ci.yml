@@ -1,0 +1,121 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  quality:
+    name: Python ${{ matrix.python-version }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.11", "3.12", "3.13"]
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v6
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install uv
+        uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b # v8.1.0
+        with:
+          version: "0.11.29"
+          enable-cache: true
+      - name: Install locked dependencies
+        run: uv sync --locked --all-extras --dev
+      - name: Verify lockfile
+        run: uv lock --check
+      - name: Lint and format
+        if: matrix.python-version == '3.12'
+        run: |
+          uv run ruff check .
+          uv run ruff format --check .
+      - name: Type check
+        if: matrix.python-version == '3.12'
+        run: uv run mypy src
+      - name: Test with branch coverage
+        run: uv run pytest --cov=atlas_agent --cov-report=term-missing --cov-report=xml
+      - name: Run offline agent evaluations
+        if: matrix.python-version == '3.12'
+        run: uv run python evals/run_evals.py --threshold 1.0
+      - name: Build wheel and source distribution
+        if: matrix.python-version == '3.12'
+        run: uv build
+
+  windows:
+    name: Windows Python 3.12
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+      - name: Install uv
+        uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b # v8.1.0
+        with:
+          version: "0.11.29"
+          enable-cache: true
+      - name: Install locked dependencies
+        run: uv sync --locked --all-extras --dev
+      - name: Run portable project checks
+        run: |
+          uv run pytest -q
+          uv run python examples/custom_tool.py
+          uv build
+
+  delivery:
+    name: Wheel and container smoke
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+      - name: Install uv
+        uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b # v8.1.0
+        with:
+          version: "0.11.29"
+          enable-cache: true
+      - name: Build distributions
+        run: |
+          uv sync --locked --all-extras --dev
+          uv build
+      - name: Install and smoke-test the wheel
+        run: |
+          uv venv /tmp/atlas-wheel-smoke --python 3.12
+          uv pip install --python /tmp/atlas-wheel-smoke/bin/python dist/*.whl
+          /tmp/atlas-wheel-smoke/bin/python -c "from importlib.resources import files; import atlas_agent; assert files('atlas_agent').joinpath('static/index.html').is_file()"
+          /tmp/atlas-wheel-smoke/bin/atlas --help
+          /tmp/atlas-wheel-smoke/bin/atlas doctor --json
+      - name: Validate Compose configuration
+        run: docker compose config --quiet
+      - name: Build and smoke-test the non-root container
+        run: |
+          docker build --tag atlas-agent:ci .
+          docker run --detach --name atlas-agent-ci \
+            --read-only \
+            --tmpfs /tmp:rw,mode=1777 \
+            --tmpfs /app/.atlas/data:rw,mode=1777 \
+            --tmpfs /app/.atlas/workspace:rw,mode=1777 \
+            --publish 127.0.0.1:8000:8000 \
+            --env ATLAS_MEMORY_ENABLED=false \
+            --env ATLAS_CODE_EXECUTION_BACKEND=disabled \
+            atlas-agent:ci
+          trap 'docker rm --force atlas-agent-ci' EXIT
+          for attempt in {1..30}; do
+            if curl --fail --silent http://127.0.0.1:8000/api/health > /tmp/atlas-health.json; then
+              break
+            fi
+            sleep 1
+          done
+          curl --fail --silent http://127.0.0.1:8000/api/health
+          curl --fail --silent http://127.0.0.1:8000/ | grep --quiet "Atlas Agent"

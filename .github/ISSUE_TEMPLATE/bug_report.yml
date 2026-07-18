@@ -1,0 +1,60 @@
+name: Bug report
+description: Report a reproducible Atlas defect without including secrets or private data.
+title: "[Bug]: "
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: Before reporting, run `atlas doctor` and remove credentials, private paths, and user data. Report vulnerabilities privately through SECURITY.md.
+  - type: textarea
+    id: summary
+    attributes:
+      label: What happened?
+      description: Describe the observed behavior and its user impact.
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Reproduction steps
+      description: Give the smallest safe sequence that reproduces the problem.
+      placeholder: |
+        1. Start Atlas with...
+        2. Submit...
+        3. Observe...
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: Atlas version or commit, Python, uv, OS, interface, and sanitized doctor status.
+    validations:
+      required: true
+  - type: dropdown
+    id: proof
+    attributes:
+      label: Validation boundary
+      options:
+        - Local deterministic
+        - Local live provider
+        - Container
+        - Hosted environment
+        - Not sure
+    validations:
+      required: true
+  - type: checkboxes
+    id: safety
+    attributes:
+      label: Safety check
+      options:
+        - label: I removed credentials, private data, and identifying local paths.
+          required: true
+        - label: This is not a vulnerability report.
+          required: true

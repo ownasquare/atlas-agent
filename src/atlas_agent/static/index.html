@@ -1,0 +1,375 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="description"
+      content="Atlas is a focused workspace for planning, completing, and reviewing complex work."
+    />
+    <title>Atlas · Workspace</title>
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%232b5f55'/%3E%3Cpath d='M8 23 16 7l8 16M11 18h10' fill='none' stroke='white' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E"
+    />
+    <link rel="stylesheet" href="/static/styles.css?v=0.3.0" />
+  </head>
+  <body data-task-view="empty">
+    <a class="skip-link" href="#mainContent">Skip to workspace</a>
+
+    <header class="topbar">
+      <a class="brand" href="/" aria-label="Atlas workspace home">
+        <span class="brand-mark" aria-hidden="true">
+          <svg viewBox="0 0 32 32" focusable="false">
+            <path d="M8 23 16 7l8 16M11 18h10" />
+          </svg>
+        </span>
+        <span class="brand-copy"><strong>Atlas</strong><small>Workspace</small></span>
+      </a>
+
+      <div class="topbar-actions">
+        <span id="healthBadge" class="health-badge">
+          <i aria-hidden="true"></i><span class="health-label">Checking readiness</span>
+        </span>
+        <button
+          id="themeButton"
+          class="button button-secondary theme-button tooltip-control"
+          type="button"
+          aria-label="Change color theme"
+          data-tooltip="Change theme"
+        >
+          <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+            <path d="M12 3v2M12 19v2M3 12h2M19 12h2M5.6 5.6 7 7M17 17l1.4 1.4M18.4 5.6 17 7M7 17l-1.4 1.4" />
+            <circle cx="12" cy="12" r="4" />
+          </svg>
+          <span class="sr-only">Theme</span>
+        </button>
+        <button id="newThreadButton" class="button button-primary" type="button">
+          <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+            <path d="M12 5v14M5 12h14" />
+          </svg>
+          <span>New task</span>
+        </button>
+      </div>
+    </header>
+
+    <section id="setupNotice" class="setup-notice" hidden>
+      <div class="setup-notice-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" focusable="false">
+          <circle cx="12" cy="12" r="9" />
+          <path d="M12 8v5M12 16.5v.5" />
+        </svg>
+      </div>
+      <div>
+        <strong>Connect a model to start tasks</strong>
+        <p id="setupMessage">
+          Complete the selected provider setup in your local <code>.env</code> file, then restart
+          Atlas. Your credential stays in local configuration and is never shown here.
+        </p>
+        <p class="setup-doctor">Confirm the local setup with <code>uv run atlas doctor</code>.</p>
+        <details class="setup-provider-details">
+          <summary>Provider examples</summary>
+          <p>
+            OpenAI uses <code>OPENAI_API_KEY</code>. Anthropic uses
+            <code>ANTHROPIC_API_KEY</code> and the <code>anthropic</code> install extra. Set
+            <code>ATLAS_MODEL</code> to the matching provider-qualified model.
+          </p>
+        </details>
+      </div>
+    </section>
+
+    <div class="workspace-shell">
+      <main id="mainContent" class="main-workspace" tabindex="-1">
+        <section class="workspace-intro" aria-labelledby="workspaceTitle">
+          <p class="section-label">New task</p>
+          <h1 id="workspaceTitle">What would you like to accomplish?</h1>
+          <p>Describe the outcome you need. Atlas can research, calculate, work with files, and prepare a reviewed result.</p>
+        </section>
+
+        <article class="panel composer-panel">
+          <form id="taskForm">
+            <label class="sr-only" for="taskInput">Describe your task</label>
+            <textarea
+              id="taskInput"
+              rows="5"
+              maxlength="20000"
+              placeholder="For example: Compare three Python agent frameworks using official sources and prepare a cited recommendation."
+              required
+            ></textarea>
+            <div class="composer-footer">
+              <details id="capabilitiesDisclosure" class="capability-disclosure">
+                <summary aria-label="View Atlas capabilities">
+                  <span>Capabilities</span><span class="info-mark" aria-hidden="true">i</span>
+                </summary>
+                <div class="capability-popover">
+                  <p>Atlas chooses from these tools when the task needs them.</p>
+                  <ul id="toolLegend" aria-label="Available capabilities">
+                    <li><strong>Web research</strong><span>Find and cite current sources.</span></li>
+                    <li><strong>Calculations</strong><span>Evaluate bounded math expressions.</span></li>
+                    <li id="pythonCapability">
+                      <strong>Python analysis</strong><span>Run guarded data analysis.</span>
+                    </li>
+                    <li><strong>Files</strong><span>Read and create workspace files.</span></li>
+                  </ul>
+                </div>
+              </details>
+              <div class="composer-action">
+                <span class="keyboard-hint">Press ⌘ Enter</span>
+                <button id="runButton" class="button button-primary run-button" type="submit">
+                  <span>Start task</span>
+                  <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                    <path d="m9 18 6-6-6-6" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+          </form>
+          <div class="example-row" aria-label="Example tasks">
+            <span>Try an example</span>
+            <button
+              type="button"
+              data-example="Research LangGraph's current memory architecture from official sources and save a concise cited brief to langgraph-memory.md."
+            >
+              Research a topic
+            </button>
+            <button
+              type="button"
+              data-example="Calculate a project budget with $2,400 in software, $8,000 in contractors, and a 12% contingency, then save a clear breakdown to project-budget.md."
+            >
+              Plan a budget
+            </button>
+            <button
+              type="button"
+              data-example="Remember that I prefer concise reports in CAD, then explain exactly what you saved for future threads."
+            >
+              Save a preference
+            </button>
+          </div>
+        </article>
+
+        <ol class="workflow-orientation" aria-label="How Atlas completes a task">
+          <li><span aria-hidden="true">1</span><div><strong>Describe</strong><small>State the outcome</small></div></li>
+          <li><span aria-hidden="true">2</span><div><strong>Work</strong><small>Follow the plan</small></div></li>
+          <li><span aria-hidden="true">3</span><div><strong>Review</strong><small>Check results and files</small></div></li>
+        </ol>
+
+        <article id="planPanel" class="panel plan-panel is-empty" data-task-panel="plan">
+          <div class="panel-heading">
+            <div>
+              <span class="panel-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" focusable="false">
+                  <path d="M9 6h11M9 12h11M9 18h11M4 6h.01M4 12h.01M4 18h.01" />
+                </svg>
+              </span>
+              <h2>Plan</h2>
+            </div>
+            <span id="planCount" class="counter">Waiting for a task</span>
+          </div>
+          <ol id="planList" class="plan-list empty-state">
+            <li><p>Atlas will outline the work before it begins.</p></li>
+          </ol>
+        </article>
+
+        <article id="answerPanel" class="panel answer-panel is-empty" data-task-panel="result">
+          <div class="panel-heading">
+            <div>
+              <span class="panel-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" focusable="false">
+                  <path d="M6 3h9l3 3v15H6zM14 3v4h4M9 12h6M9 16h6" />
+                </svg>
+              </span>
+              <h2>Result</h2>
+            </div>
+            <button id="copyButton" class="button button-secondary compact-button" type="button" disabled>
+              Copy result
+            </button>
+          </div>
+          <div id="answerContent" class="answer-content empty-state">
+            <p>Your reviewed result will appear here.</p>
+          </div>
+          <div id="evidenceGrid" class="evidence-grid" hidden>
+            <section aria-labelledby="sourcesHeading">
+              <h3 id="sourcesHeading">Sources</h3>
+              <ul id="sourceList" class="evidence-list"></ul>
+            </section>
+            <section aria-labelledby="artifactsHeading">
+              <h3 id="artifactsHeading">Created files</h3>
+              <ul id="artifactList" class="evidence-list"></ul>
+            </section>
+          </div>
+        </article>
+      </main>
+
+      <aside class="workspace-sidebar" aria-label="Task navigation">
+        <section class="sidebar-section recent-section" aria-labelledby="recentHeading">
+          <div class="section-heading">
+            <div>
+              <p class="section-label">Workspace</p>
+              <h2 id="recentHeading">Recent tasks</h2>
+            </div>
+            <button
+              id="clearRecentTasksButton"
+              class="text-button recent-clear"
+              type="button"
+              hidden
+            >
+              Clear
+            </button>
+          </div>
+          <nav aria-labelledby="recentHeading">
+            <ul id="recentTaskList" class="recent-task-list">
+              <li class="sidebar-empty">Your latest work will appear here.</li>
+            </ul>
+          </nav>
+        </section>
+
+        <details id="workspaceSettings" class="sidebar-details utility-disclosure">
+          <summary>
+            <span class="summary-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" focusable="false">
+                <circle cx="12" cy="12" r="3" />
+                <path d="M19 13.5v-3l-2.1-.7a7 7 0 0 0-.7-1.7l1-2-2.1-2.1-2 1a7 7 0 0 0-1.7-.7L10.5 2h-3l-.7 2.2a7 7 0 0 0-1.7.7l-2-1L1 6l1 2a7 7 0 0 0-.7 1.7L-1 10.5v3l2.2.7a7 7 0 0 0 .7 1.7l-1 2L3 20l2-1a7 7 0 0 0 1.7.7l.7 2.2h3l.7-2.2a7 7 0 0 0 1.7-.7l2 1 2.1-2.1-1-2a7 7 0 0 0 .7-1.7L19 13.5Z" />
+              </svg>
+            </span>
+            <span>Settings</span><span class="info-mark" aria-hidden="true">i</span>
+          </summary>
+          <div class="utility-content">
+            <section class="memory-utility" aria-labelledby="memoryHeading">
+              <div class="utility-section-heading">
+                <div>
+                  <h3 id="memoryHeading">Saved context</h3>
+                  <p>Preferences and project context available across tasks.</p>
+                </div>
+                <button
+                  id="refreshMemoryButton"
+                  class="icon-button"
+                  type="button"
+                  aria-label="Refresh saved context"
+                  data-tooltip="Refresh saved context"
+                >
+                  <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                    <path d="M20 11a8 8 0 1 0-2.3 5.7M20 5v6h-6" />
+                  </svg>
+                </button>
+              </div>
+              <ul id="memoryList" class="memory-list"><li class="muted">No saved context yet.</li></ul>
+              <button id="clearMemoryButton" class="clear-button" type="button">Clear saved context</button>
+            </section>
+
+            <details class="developer-settings">
+              <summary>Developer settings</summary>
+              <div class="settings-fields">
+                <label for="userId">
+                  <span>Local profile</span>
+                  <input id="userId" value="local-user" maxlength="100" autocomplete="off" />
+                </label>
+                <label for="threadId">
+                  <span>Task reference</span>
+                  <input id="threadId" maxlength="100" autocomplete="off" />
+                </label>
+                <p>These local references keep tasks and saved context separate.</p>
+              </div>
+              <div class="engineering-content">
+                <p>Atlas uses guarded tools, review steps, and durable memory.</p>
+                <ol class="mini-flow" aria-label="Atlas workflow details">
+                  <li>Recall</li>
+                  <li>Plan</li>
+                  <li>Work</li>
+                  <li>Review</li>
+                  <li>Save</li>
+                </ol>
+                <a href="/docs" target="_blank" rel="noreferrer">
+                  Open API documentation<span class="sr-only"> (opens in a new tab)</span>
+                </a>
+              </div>
+            </details>
+          </div>
+        </details>
+      </aside>
+
+      <aside class="context-rail" aria-label="Task details">
+        <article class="panel timeline-panel" data-task-panel="activity">
+          <div class="panel-heading compact">
+            <div>
+              <span class="status-dot" aria-hidden="true"></span>
+              <h2>Activity</h2>
+            </div>
+            <span id="runStatus" class="run-status">Ready</span>
+          </div>
+          <ol id="timeline" class="timeline">
+            <li class="timeline-placeholder"><span aria-hidden="true"></span><p>Task progress will appear here.</p></li>
+          </ol>
+          <dl id="runSummary" class="run-summary" hidden>
+            <div><dt>Plan items</dt><dd id="iterationMetric">0</dd></div>
+            <div><dt>Files</dt><dd id="artifactMetric">0</dd></div>
+          </dl>
+        </article>
+
+        <dialog
+          id="approvalPanel"
+          class="dialog-surface approval-panel"
+          aria-labelledby="approvalQuestion"
+          aria-describedby="approvalSummary"
+        >
+          <div class="approval-heading">
+            <span class="approval-badge">Review needed</span>
+            <h2 id="approvalQuestion">Allow this action?</h2>
+            <p id="approvalSummary">Review what will change before Atlas continues.</p>
+          </div>
+          <details class="approval-details">
+            <summary>View action details</summary>
+            <pre id="approvalDetails"></pre>
+          </details>
+          <div class="approval-actions">
+            <button id="rejectButton" class="button button-secondary reject-button" type="button">Don’t allow</button>
+            <button id="approveButton" class="button button-warning approve-button" type="button">Allow once</button>
+          </div>
+        </dialog>
+
+        <article class="panel files-panel" data-task-panel="files">
+          <div class="panel-heading compact">
+            <div>
+              <span class="panel-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" focusable="false">
+                  <path d="M3 6h7l2 2h9v11H3z" />
+                </svg>
+              </span>
+              <h2>Files</h2>
+            </div>
+            <button
+              id="refreshWorkspaceButton"
+              class="icon-button"
+              type="button"
+              aria-label="Refresh files"
+              title="Refresh files"
+            >
+              <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                <path d="M20 11a8 8 0 1 0-2.3 5.7M20 5v6h-6" />
+              </svg>
+            </button>
+          </div>
+          <ul id="workspaceFileList" class="workspace-file-list" aria-label="Workspace files">
+            <li class="muted">No files have been created yet.</li>
+          </ul>
+          <div class="file-preview-heading">
+            <span>Preview</span>
+            <button id="copyFileButton" class="button button-secondary compact-button" type="button" disabled>
+              Copy file
+            </button>
+          </div>
+          <pre id="workspacePreview" class="workspace-preview" tabindex="0">Select a file to preview it here.</pre>
+        </article>
+
+      </aside>
+    </div>
+
+    <footer>
+      <span>Atlas workspace</span>
+      <span>Your tasks and files remain in this local environment.</span>
+    </footer>
+
+    <div id="statusAnnouncer" class="sr-only" role="status" aria-live="polite" aria-atomic="true"></div>
+    <div id="toast" class="toast"></div>
+    <script src="/static/app.js?v=0.3.0" defer></script>
+  </body>
+</html>

@@ -1,0 +1,39 @@
+name: Feature request
+description: Propose a focused improvement to Atlas.
+title: "[Feature]: "
+labels: [enhancement]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: What user problem or extension limitation should Atlas solve?
+    validations:
+      required: true
+  - type: textarea
+    id: outcome
+    attributes:
+      label: Desired outcome
+      description: Describe the smallest useful result, not only a technical implementation.
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: Note existing workflows, extensions, or workarounds you evaluated.
+  - type: checkboxes
+    id: boundaries
+    attributes:
+      label: Affected boundaries
+      options:
+        - label: Tools or evidence
+        - label: Memory or persistence
+        - label: API or CLI
+        - label: Web workspace
+        - label: Safety or deployment
+  - type: textarea
+    id: validation
+    attributes:
+      label: Suggested validation
+      description: How would a reviewer know the feature works without weakening safety?
