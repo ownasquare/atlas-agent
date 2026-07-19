@@ -148,6 +148,31 @@ class Settings(BaseSettings):
         return self.model_credential_is_configured and self.model_integration_is_available
 
     @property
+    def model_setup_action(self) -> str | None:
+        """Return one secret-safe action for completing local model setup."""
+        provider = self.model_provider
+        provider_key = {
+            "openai": "OPENAI_API_KEY",
+            "anthropic": "ANTHROPIC_API_KEY",
+        }.get(provider)
+
+        if not self.model_credential_is_configured:
+            if provider_key is not None:
+                return f"Add {provider_key} to .env, then restart Atlas."
+            return (
+                f"Configure the '{provider}' integration, then set "
+                "ATLAS_CUSTOM_MODEL_CONFIGURED=true."
+            )
+
+        if self.model_integration_is_available:
+            return None
+        if provider == "anthropic":
+            return "Install the Anthropic integration with uv sync --locked --extra anthropic."
+        if provider == "openai":
+            return "Restore the locked OpenAI integration with uv sync --locked."
+        return f"Finish configuring the '{provider}' model integration."
+
+    @property
     def model_api_key(self) -> SecretStr | None:
         """Return the provider credential as an opaque secret for client construction."""
         if self.model_provider == "openai":

@@ -171,3 +171,72 @@ def test_anthropic_requires_its_optional_integration(
     assert settings.model_credential_is_configured is True
     assert settings.model_integration_is_available is False
     assert settings.model_is_configured is False
+
+
+def test_model_setup_action_points_to_the_selected_provider_key(
+    tmp_path: Path,
+) -> None:
+    openai = make_settings(
+        tmp_path,
+        model="openai:gpt-4.1-mini",
+        OPENAI_API_KEY="",
+        TAVILY_API_KEY="setup-action-secret",
+    )
+    anthropic = make_settings(
+        tmp_path,
+        model="anthropic:claude-sonnet-4-5",
+        ANTHROPIC_API_KEY="",
+        TAVILY_API_KEY="setup-action-secret",
+    )
+
+    assert openai.model_setup_action == "Add OPENAI_API_KEY to .env, then restart Atlas."
+    assert anthropic.model_setup_action == "Add ANTHROPIC_API_KEY to .env, then restart Atlas."
+    assert "setup-action-secret" not in openai.model_setup_action
+    assert "setup-action-secret" not in anthropic.model_setup_action
+
+
+def test_model_setup_action_explains_a_missing_anthropic_integration(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setattr(
+        config_module.importlib.util,
+        "find_spec",
+        lambda module: None if module == "langchain_anthropic" else object(),
+    )
+    settings = make_settings(
+        tmp_path,
+        model="anthropic:claude-sonnet-4-5",
+        ANTHROPIC_API_KEY="integration-test-secret",
+    )
+
+    assert settings.model_setup_action == (
+        "Install the Anthropic integration with uv sync --locked --extra anthropic."
+    )
+    assert "integration-test-secret" not in settings.model_setup_action
+
+
+def test_model_setup_action_explains_custom_provider_opt_in(tmp_path: Path) -> None:
+    settings = make_settings(tmp_path, model="custom:local-model")
+
+    assert settings.model_setup_action == (
+        "Configure the 'custom' integration, then set ATLAS_CUSTOM_MODEL_CONFIGURED=true."
+    )
+
+
+def test_model_setup_action_is_none_when_the_selected_provider_is_ready(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setattr(config_module.importlib.util, "find_spec", lambda module: object())
+    openai = make_settings(
+        tmp_path,
+        model="openai:gpt-4.1-mini",
+        OPENAI_API_KEY="configured-test-secret",
+    )
+    custom = make_settings(
+        tmp_path,
+        model="fixture:deterministic",
+        custom_model_configured=True,
+    )
+
+    assert openai.model_setup_action is None
+    assert custom.model_setup_action is None

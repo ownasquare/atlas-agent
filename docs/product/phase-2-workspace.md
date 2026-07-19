@@ -69,10 +69,19 @@ Validate the complete composer → activity → decision → result → artifact
 | 768px wide | Navigation and workspace use available space without moving activity or decisions out of context. |
 | 1440px wide | Recent tasks, primary work, and supporting activity form a balanced application shell; the composer remains the dominant entry action. |
 
-The local Phase 2 matrix covers light and dark themes, the core empty/setup/success/approval states, no horizontal overflow, and keyboard-only operation. Before a formal accessibility conformance claim or public hosting, extend the matrix to automated error-state coverage, 200% text sizing, 400% zoom reflow, reduced-motion emulation, forced colors, and representative assistive technology.
+The committed local matrix covers light and dark themes; setup, working, success, approval, and
+recoverable-error states; no horizontal overflow; focus containment and return; enlarged text;
+reduced motion; and forced colors. Before a formal accessibility conformance claim or public
+hosting, add recorded manual proof for representative screen readers, full keyboard workflows,
+400% zoom reflow, and supported browser/assistive-technology combinations.
 
 ## Validation and proof boundaries
 
-Phase 2 local acceptance combines focused unit/API tests, static accessibility and injection-safety contracts, Playwright-backed in-app browser interactions, and inspected desktop/mobile screenshots. Browser proof exercises real UI state transitions for setup-needed, recent-task restore, approval and focus return, confined artifact preview, theme selection, copy behavior, and successful completion. A committed Playwright/axe CI matrix remains a pre-hosting follow-up, so this work does not claim formal WCAG conformance.
+Phase 2 local acceptance combines focused unit/API tests, static accessibility and injection-safety
+contracts, a committed Playwright/axe CI matrix, and inspected desktop/mobile behavior. The
+deterministic browser fixture exercises setup-needed, working, completion, approval and focus
+return, a truncated-stream error, responsive themes, and evidence rendering without a provider
+credential. Manual checks remain a separate proof layer, so this work does not claim formal WCAG
+conformance.
 
 This evidence proves the local application only. It does not prove hosted availability, production deployment, public authentication, multi-tenant isolation, cross-device history, live provider reliability, or multi-host persistence. Any fixture, mocked stream, deterministic vectorizer, or local-only provider path must be labelled as such; none may be summarized as production proof.

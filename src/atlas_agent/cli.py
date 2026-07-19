@@ -34,29 +34,11 @@ console = Console()
 def _doctor_report(settings: Settings) -> dict[str, Any]:
     """Build a credential-safe local readiness report."""
     provider = settings.model_provider
-    provider_key = {
-        "openai": "OPENAI_API_KEY",
-        "anthropic": "ANTHROPIC_API_KEY",
-    }.get(provider)
 
     next_actions: list[str] = []
-    if not settings.model_credential_is_configured:
-        if provider_key is not None:
-            next_actions.append(f"Add {provider_key} to .env, then restart Atlas.")
-        else:
-            next_actions.append(
-                f"Configure the '{provider}' integration, then set "
-                "ATLAS_CUSTOM_MODEL_CONFIGURED=true."
-            )
-    elif not settings.model_integration_is_available:
-        if provider == "anthropic":
-            next_actions.append(
-                "Install the Anthropic integration with uv sync --locked --extra anthropic."
-            )
-        elif provider == "openai":
-            next_actions.append("Restore the locked OpenAI integration with uv sync --locked.")
-        else:
-            next_actions.append(f"Finish configuring the '{provider}' model integration.")
+    model_setup_action = settings.model_setup_action
+    if model_setup_action is not None:
+        next_actions.append(model_setup_action)
 
     docker_path = shutil.which("docker") if settings.code_execution_backend == "docker" else None
     if settings.code_execution_backend == "disabled":
@@ -148,6 +130,17 @@ def _new_thread_id() -> str:
     return f"thread-{uuid.uuid4().hex[:10]}"
 
 
+def _require_model_setup(settings: Settings | None = None) -> None:
+    """Stop task commands before runtime construction when setup is incomplete."""
+    action = (settings or get_settings()).model_setup_action
+    if action is None:
+        return
+    typer.echo("Atlas needs model setup.")
+    typer.echo(action)
+    typer.echo("Run `uv run atlas doctor` to review readiness, then retry.")
+    raise typer.Exit(code=2)
+
+
 def _render_result(result: RunResult) -> None:
     if result.plan:
         table = Table(title="Execution plan", show_header=True, header_style="bold magenta")
@@ -208,6 +201,7 @@ def run_command(
     ] = None,
 ) -> None:
     """Run one task, pausing in the terminal for risky tool approval."""
+    _require_model_setup()
     asyncio.run(_run_once(message, user_id, thread_id or _new_thread_id()))
 
 
@@ -234,6 +228,7 @@ def chat_command(
     thread_id: Annotated[str | None, typer.Option("--thread")] = None,
 ) -> None:
     """Start an interactive conversation with durable thread memory."""
+    _require_model_setup()
     asyncio.run(_chat(user_id, thread_id or _new_thread_id()))
 
 
@@ -268,6 +263,7 @@ def resume_command(
     user_id: Annotated[str, typer.Option("--user", help="Thread owner namespace.")] = "local-user",
 ) -> None:
     """Inspect and approve or reject a durable paused action."""
+    _require_model_setup()
     asyncio.run(_resume_paused(user_id, thread_id))
 
 

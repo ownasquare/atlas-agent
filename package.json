@@ -1,0 +1,15 @@
+{
+  "name": "atlas-agent-e2e",
+  "private": true,
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "test:e2e": "playwright test",
+    "test:e2e:accessibility": "playwright test tests/e2e/accessibility.spec.js"
+  },
+  "devDependencies": {
+    "@axe-core/playwright": "4.12.1",
+    "@playwright/test": "1.61.1"
+  }
+}

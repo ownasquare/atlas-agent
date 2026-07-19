@@ -10,6 +10,7 @@
   --subtle: #656d65;
   --border: #dfe3dc;
   --border-strong: #cbd1c8;
+  --control-border: #747d72;
   --accent: #2d6659;
   --accent-hover: #245348;
   --accent-soft: #e4efeb;
@@ -36,6 +37,7 @@
   --subtle: #aab2aa;
   --border: #39403a;
   --border-strong: #4b554c;
+  --control-border: #849087;
   --accent: #76b7a5;
   --accent-hover: #8bc5b5;
   --accent-soft: #263f38;
@@ -62,6 +64,7 @@
     --subtle: #aab2aa;
     --border: #39403a;
     --border-strong: #4b554c;
+    --control-border: #849087;
     --accent: #76b7a5;
     --accent-hover: #8bc5b5;
     --accent-soft: #263f38;
@@ -82,13 +85,11 @@
 }
 
 html {
-  min-width: 320px;
   background: var(--page);
   scroll-behavior: smooth;
 }
 
 body {
-  min-width: 320px;
   min-height: 100vh;
   margin: 0;
   color: var(--ink);
@@ -144,10 +145,6 @@ svg {
 :where(a, button, input, textarea, summary, [tabindex]):focus-visible {
   outline: 3px solid var(--focus);
   outline-offset: 3px;
-}
-
-.main-workspace:focus-visible {
-  outline: none;
 }
 
 .skip-link {
@@ -265,7 +262,7 @@ svg {
 .recent-task-list button,
 .workspace-file-list button {
   min-height: var(--control-height);
-  border: 1px solid var(--border-strong);
+  border: 1px solid var(--control-border);
   border-radius: 9px;
   background: var(--surface);
   cursor: pointer;
@@ -323,7 +320,7 @@ svg {
 .compact-button {
   min-height: var(--control-height);
   padding-inline: 12px;
-  font-size: 13px;
+  font-size: 14px;
 }
 
 .theme-button {
@@ -424,7 +421,7 @@ svg {
   align-items: center;
   color: var(--ink);
   cursor: pointer;
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 650;
 }
 
@@ -555,7 +552,7 @@ body[data-task-view="active"] [data-task-panel="result"]:not(.has-content) {
   min-height: var(--control-height);
   padding-inline: 8px;
   color: var(--muted);
-  font-size: 13px;
+  font-size: 14px;
 }
 
 .recent-task-row {
@@ -644,7 +641,7 @@ body[data-task-view="active"] [data-task-panel="result"]:not(.has-content) {
   padding: 9px 12px;
   border-radius: 11px;
   cursor: pointer;
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 650;
   list-style: none;
 }
@@ -756,7 +753,7 @@ body[data-task-view="active"] [data-task-panel="result"]:not(.has-content) {
   align-items: center;
   padding: 9px 0;
   cursor: pointer;
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 650;
   list-style: none;
 }
@@ -787,11 +784,11 @@ body[data-task-view="active"] [data-task-panel="result"]:not(.has-content) {
   width: 100%;
   min-height: var(--control-height);
   padding: 0 10px;
-  border: 1px solid var(--border-strong);
+  border: 1px solid var(--control-border);
   border-radius: 8px;
   background: var(--surface-subtle);
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-  font-size: 12px;
+  font-size: 14px;
 }
 
 .settings-fields p,
@@ -805,7 +802,7 @@ body[data-task-view="active"] [data-task-panel="result"]:not(.has-content) {
   display: inline-block;
   min-height: var(--control-height);
   padding-top: 12px;
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 650;
 }
 
@@ -969,11 +966,16 @@ textarea {
   padding: 14px 15px;
   resize: vertical;
   color: var(--ink);
-  border: 1px solid var(--border-strong);
+  border: 1px solid var(--control-border);
   border-radius: 10px;
   background: var(--surface);
   font-size: 15px;
   line-height: 1.6;
+}
+
+textarea[readonly] {
+  background: var(--surface-subtle);
+  cursor: progress;
 }
 
 textarea::placeholder {
@@ -1004,11 +1006,11 @@ textarea:hover:not(:disabled) {
   gap: 8px;
   padding: 0 10px;
   color: var(--muted);
-  border: 1px solid var(--border-strong);
+  border: 1px solid var(--control-border);
   border-radius: 9px;
   background: var(--surface);
   cursor: pointer;
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 650;
   list-style: none;
 }
@@ -1112,7 +1114,7 @@ textarea:hover:not(:disabled) {
   padding: 7px 10px;
   color: var(--muted);
   background: var(--surface);
-  font-size: 12px;
+  font-size: 14px;
 }
 
 .example-row button:hover {
@@ -1322,7 +1324,7 @@ textarea:hover:not(:disabled) {
 .evidence-list button {
   min-width: 0;
   color: var(--accent);
-  font-size: 13px;
+  font-size: 14px;
   overflow-wrap: anywhere;
 }
 
@@ -1337,7 +1339,7 @@ textarea:hover:not(:disabled) {
   min-height: var(--control-height);
   padding: 8px 10px;
   color: var(--accent);
-  border: 1px solid var(--border);
+  border: 1px solid var(--control-border);
   border-radius: 8px;
   background: var(--surface);
   cursor: pointer;
@@ -1357,7 +1359,7 @@ textarea:hover:not(:disabled) {
   justify-content: center;
   padding: 0 9px;
   border-radius: 8px;
-  font-size: 12px;
+  font-size: 14px;
   font-weight: 650;
 }
 
@@ -1519,17 +1521,17 @@ textarea:hover:not(:disabled) {
 
 .approval-details {
   margin-top: 17px;
-  border: 1px solid var(--border);
+  border: 1px solid var(--control-border);
   border-radius: 10px;
   background: var(--surface-subtle);
-  overflow: hidden;
+  overflow: visible;
 }
 
 .approval-details summary {
   min-height: var(--control-height);
   padding: 11px 13px;
   cursor: pointer;
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 650;
   list-style: none;
 }
@@ -1609,7 +1611,7 @@ textarea:hover:not(:disabled) {
   color: var(--ink);
   border-color: transparent;
   background: transparent;
-  font-size: 13px;
+  font-size: 14px;
   overflow: hidden;
   text-align: left;
   text-overflow: ellipsis;
@@ -1722,11 +1724,11 @@ textarea:hover:not(:disabled) {
   flex: 0 0 auto;
   padding: 0 9px;
   color: var(--muted);
-  border: 1px solid var(--border);
+  border: 1px solid var(--control-border);
   border-radius: 8px;
   background: var(--surface);
   cursor: pointer;
-  font-size: 12px;
+  font-size: 14px;
 }
 
 .memory-remove:hover {
@@ -1755,7 +1757,7 @@ textarea:hover:not(:disabled) {
   margin: 0 14px 14px;
   padding: 9px 12px;
   color: var(--muted);
-  font-size: 13px;
+  font-size: 14px;
 }
 
 .clear-button:hover:not(:disabled) {
@@ -2148,6 +2150,13 @@ footer {
   .info-mark,
   .tool-tag {
     border: 1px solid ButtonText;
+  }
+
+  .button-primary,
+  .button-warning {
+    color: ButtonText;
+    border-color: ButtonText;
+    background: ButtonFace;
   }
 
   .health-badge i,

@@ -7,6 +7,7 @@ contracts during local visual testing.
 
 from __future__ import annotations
 
+import asyncio
 import hashlib
 from collections.abc import AsyncIterator
 from dataclasses import dataclass
@@ -263,6 +264,8 @@ class FakeRuntime:
                     event="stage",
                     data={"stage": stage, "message": stage_message},
                 )
+                if stage == "plan" and "working state" in message.casefold():
+                    await asyncio.sleep(1.2)
             if "truncated stream" in message.casefold():
                 return
             result = await self.run(

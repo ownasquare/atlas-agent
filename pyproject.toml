@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "atlas-agent"
-version = "0.3.0"
+version = "0.3.1"
 description = "A durable LangGraph agent that plans complex work and safely uses real tools."
 readme = "README.md"
 requires-python = ">=3.11,<3.14"
@@ -67,7 +67,7 @@ atlas-api = "atlas_agent.api:main"
 packages = ["src/atlas_agent"]
 
 [tool.uv]
-default-groups = ["dev"]
+default-groups = []
 
 [dependency-groups]
 dev = [

@@ -16,6 +16,9 @@ htmlcov/
 dist/
 build/
 test-results/
+node_modules/
+playwright-report/
+blob-report/
 
 # Local execution records are intentionally excluded from the public project.
 docs/atlas-agent/
