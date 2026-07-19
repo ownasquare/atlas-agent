@@ -7,10 +7,12 @@ from fastapi.testclient import TestClient
 
 from atlas_agent.api import create_app
 from atlas_agent.config import Settings
+from atlas_agent.memory import VectorMemory
 from atlas_agent.runtime import ThreadConflictError
 from atlas_agent.schemas import (
     ApprovalRequest,
     ApprovalResponse,
+    MemoryCandidate,
     MemoryRecord,
     PlanStep,
     RunResult,
@@ -341,6 +343,45 @@ def test_memory_endpoints_preserve_user_scope(tmp_path: Path) -> None:
     assert wrong_user_delete.status_code == 404
     assert deleted.status_code == 204
     assert cleared.json() == {"deleted": 0}
+
+
+def test_memory_endpoints_operate_on_the_sqlite_vector_backend(tmp_path: Path) -> None:
+    runtime = FakeRuntime()
+    memory = VectorMemory(tmp_path / "vectors", collection_name="api_memories")
+    alice = memory.add(
+        user_id="alice",
+        thread_id="thread-a",
+        candidate=MemoryCandidate(
+            content="Prefer concise Python reports",
+            category="preference",
+            importance=4,
+        ),
+    )
+    memory.add(
+        user_id="bob",
+        thread_id="thread-b",
+        candidate=MemoryCandidate(
+            content="Prefer detailed Java reports",
+            category="preference",
+            importance=4,
+        ),
+    )
+    assert alice is not None
+    runtime.memory = memory
+    app = create_app(settings(tmp_path), runtime_override=runtime)
+
+    with TestClient(app) as client:
+        listed = client.get("/api/memories", params={"user_id": "alice"})
+        wrong_user_delete = client.delete(f"/api/memories/{alice.id}", params={"user_id": "bob"})
+        cleared = client.delete("/api/memories", params={"user_id": "alice"})
+
+    assert [record["content"] for record in listed.json()] == ["Prefer concise Python reports"]
+    assert wrong_user_delete.status_code == 404
+    assert cleared.json() == {"deleted": 1}
+    assert memory.list(user_id="alice") == []
+    assert [record.content for record in memory.list(user_id="bob")] == [
+        "Prefer detailed Java reports"
+    ]
 
 
 def test_resume_request_rejects_unknown_action(tmp_path: Path) -> None:

@@ -15,9 +15,19 @@ interfaces continue to mature.
 ### Changed
 
 - Code execution now defaults to disabled and requires explicit Docker opt-in.
+- Saved context now uses Atlas's network-free SQLite vector index instead of Chroma, removing the
+  first-use embedding download and heavyweight cache volume. Pre-release Chroma records are left
+  untouched but are not imported automatically; re-save any context Atlas should continue to recall.
 - The workspace centers the task, progress, and reviewed result while disclosing secondary details
   only when useful.
 - Continuous integration uses locked dependency installation and current supported Python versions.
+
+### Security
+
+- Removed ChromaDB 1.5.9 and its unresolved critical `GHSA-f4j7-r4q5-qw2c` advisory from the
+  runtime dependency graph.
+- Raised the development graph's cryptography floor to 48.0.1, which contains the fix for
+  `GHSA-537c-gmf6-5ccf`.
 
 ## [0.2.0] - 2026-07-17
 

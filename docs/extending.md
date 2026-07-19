@@ -72,13 +72,13 @@ Atlas uses LangChain's provider-qualified model format. For a custom provider:
 
 For a non-LangChain model or different models per role, implement the five async methods on `AgentBrain` in `brain.py` and pass that implementation to `open_runtime(brain=...)`.
 
-## Replace semantic memory
+## Replace saved vector memory
 
 Implement the public `MemoryStore` protocol in `memory.py`: `add`, `search`, `list`, `delete`, and `clear`. Every operation must remain scoped by `user_id`; writes must preserve redaction and bounded `MemoryCandidate` / `MemoryRecord` contracts.
 
 Pass an instance to `open_runtime(memory=...)`. If LangGraph Studio should use it too, replace the memory construction in `studio.py`. Prove restart persistence, duplicate handling, cross-user isolation, secret redaction/drop behavior, and API CRUD before enabling the backend by default.
 
-Conversation memory is separate: replacing semantic memory does not replace the LangGraph checkpointer or its `(user_id, thread_id)` namespace.
+Conversation memory is separate: replacing saved vector memory does not replace the LangGraph checkpointer or its `(user_id, thread_id)` namespace.
 
 ## Add an API or browser feature
 

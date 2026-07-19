@@ -32,7 +32,7 @@ The design protects the host workspace and durable user boundaries while preserv
 | Runaway computation | Wall/CPU/memory/process/file/output limits | Timeout and truncation tests |
 | Calculator code injection | Purpose-built AST interpreter, never Python `eval` | Injection and complexity tests |
 | Cross-user memory | Mandatory user filters on search/list/delete/clear | Isolation tests |
-| Credential persistence | Pattern redaction before Chroma upsert | Redaction/drop tests |
+| Credential persistence | Pattern redaction before vectorization and SQLite upsert | Redaction/drop tests |
 | Prompt injection | External text is labeled untrusted; evidence comes only from tool messages | Prompt and evidence tests |
 | Infinite loops/cost | Action, review, search, file, and output budgets | Budget integration tests |
 | Information leakage | Sanitized tool errors and credential-presence-only health response | API/tool tests |

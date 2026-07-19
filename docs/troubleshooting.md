@@ -21,7 +21,8 @@ when you need structured diagnostics, and sanitize paths or user data before sha
 | Provider is unsupported | Install the matching LangChain provider integration and follow [Extending Atlas](extending.md); unknown providers are not assumed ready. |
 | Python is unavailable | This is the safe default. Most Atlas tasks work without it. Enable Docker only if the task needs Python. |
 | Docker Python fails | Pull `python:3.12-alpine`, confirm Docker is running, set `ATLAS_CODE_EXECUTION_BACKEND=docker`, and rerun the doctor. |
-| Memory is slow on first use | Chroma may download its local embedding model once. Check network access and local cache permissions. |
+| Saved context cannot open | Confirm `.atlas/data/memory` is writable. The built-in vectorizer is local and does not download a model. |
+| Saved context returns a loose match | Use specific keywords and inspect `uv run atlas memory list`. The lightweight local index ranks deterministic word and character similarity rather than using a hosted embedding model. |
 | Port 8000 is in use | Start with `uv run atlas serve --port 8001`, then open `http://127.0.0.1:8001`. |
 | A task waits for a decision | Review the displayed action and choose **Allow once** or **Don't allow**. Atlas will not choose for you. |
 | Recent tasks disappeared | Browser shortcuts were cleared or a different profile is selected. SQLite checkpoints are separate from those shortcuts. |
