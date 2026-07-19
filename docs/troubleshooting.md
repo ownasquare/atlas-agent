@@ -16,6 +16,8 @@ when you need structured diagnostics, and sanitize paths or user data before sha
 | Symptom | What to do |
 | --- | --- |
 | Model is not ready | Confirm `ATLAS_MODEL` uses `provider:model-id`, add the matching provider key to `.env`, restart Atlas, and rerun the doctor. |
+| Task stops with `Atlas needs model setup` | This is the expected preflight, not a task failure. Follow its one setup action, restart Atlas, and rerun `uv run atlas doctor`. |
+| API returns `503 ModelSetupRequired` | Read `detail.action`, complete that local setup step, and retry. Health, settings, workspace, graph, and memory views remain available without a model. |
 | OpenAI task cannot start | Confirm `OPENAI_API_KEY` is present in `.env`; do not paste its value into an issue. |
 | Anthropic integration is missing | Run `uv sync --locked --extra anthropic`, set an `anthropic:<model-id>`, and restart. |
 | Provider is unsupported | Install the matching LangChain provider integration and follow [Extending Atlas](extending.md); unknown providers are not assumed ready. |
@@ -29,6 +31,11 @@ when you need structured diagnostics, and sanitize paths or user data before sha
 | A file is not visible | Atlas lists only bounded, non-hidden files inside the configured workspace. Symlinks and escaped paths are rejected. |
 
 ## Installation problems
+
+Atlas is not published on PyPI. If you installed with `pip install atlas-agent`, remove that
+unrelated package and start again from the [Atlas repository](https://github.com/ownasquare/atlas-agent)
+using the tagged v0.3.1 source checkout in [Getting started](getting-started.md). Version 0.3.0 does
+not include the concise missing-model preflight; upgrade before diagnosing that behavior.
 
 Confirm Python and uv first:
 

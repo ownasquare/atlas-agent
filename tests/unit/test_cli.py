@@ -189,6 +189,15 @@ def test_command_wrappers_and_server_configuration(monkeypatch: pytest.MonkeyPat
     monkeypatch.setattr(cli, "_clear_memories", fake_clear)
     monkeypatch.setattr(cli, "_resume_paused", fake_resume)
     monkeypatch.setattr(cli.typer, "confirm", lambda *args, **kwargs: True)
+    monkeypatch.setattr(
+        cli,
+        "get_settings",
+        lambda: Settings(
+            _env_file=None,
+            model="fixture:deterministic",
+            custom_model_configured=True,
+        ),
+    )
 
     cli.run_command("Task", "alice", "thread-fixed")
     cli.chat_command("alice", "thread-fixed")
@@ -209,6 +218,38 @@ def test_command_wrappers_and_server_configuration(monkeypatch: pytest.MonkeyPat
     assert [name for name, _ in calls] == ["run", "chat", "graph", "list", "clear", "resume"]
     assert server["host"] == "127.0.0.1"
     assert server["port"] == 9000
+
+
+@pytest.mark.parametrize(
+    "arguments",
+    [
+        ["run", "Complete the brief"],
+        ["chat"],
+        ["resume", "--thread", "thread-paused"],
+    ],
+)
+def test_task_commands_fail_fast_with_secret_safe_model_setup_guidance(
+    arguments: list[str], tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    settings = Settings(
+        _env_file=None,
+        data_dir=tmp_path / "data",
+        workspace_dir=tmp_path / "workspace",
+        model="openai:gpt-4.1-mini",
+        OPENAI_API_KEY="",
+        TAVILY_API_KEY="cli-test-secret",
+    )
+    monkeypatch.setattr(cli, "get_settings", lambda: settings)
+
+    result = CliRunner().invoke(cli.app, arguments)
+
+    assert result.exit_code == 2
+    assert "Atlas needs model setup" in result.stdout
+    assert "uv run atlas doctor" in result.stdout
+    assert "OPENAI_API_KEY" in result.stdout
+    assert "Traceback" not in result.stdout
+    assert "cli-test-secret" not in result.stdout
+    assert len(result.stdout.splitlines()) < 15
 
 
 def test_doctor_json_is_actionable_and_never_exposes_credentials(

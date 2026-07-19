@@ -10,7 +10,7 @@ proof layers. A green result in one layer must not be presented as proof of anot
 | Unit tests | Schemas, configuration, memory, and guarded tool behavior | End-to-end orchestration |
 | Integration tests | Graph routing, durability, approvals, API, and streaming | Live-provider reliability |
 | Offline agent evaluations | Recorded plan, trajectory, evidence, memory, and safety contracts | Future model quality |
-| Browser validation | Workspace layout and interaction states | Credentialed task quality |
+| Browser validation | Fixture-backed workspace states, keyboard behavior, responsive layout, and automated axe rules | Credentialed task quality or formal accessibility conformance |
 | Live evaluation | Explicitly authorized model and search behavior | Hosted or production readiness |
 
 ## Run the local gates
@@ -34,6 +34,23 @@ uv run mypy src
 uv run pytest --cov=atlas_agent --cov-report=term-missing
 uv run python evals/run_evals.py
 ```
+
+Install the browser runner once, then run the committed accessibility gate:
+
+```bash
+npm ci
+npx playwright install chromium
+make test-accessibility
+```
+
+The Playwright/axe matrix exercises setup-needed, working, completed, approval, rejection, and
+recoverable-error states. It also checks keyboard focus, light and dark themes, horizontal reflow at
+320, 375, 768, and 1440 pixels, primary target and functional-text sizes, text enlargement, reduced
+motion, and forced colors. It uses deterministic local fixtures and does not call a model provider.
+
+Automated rules cannot establish full WCAG conformance. Before making a conformance claim, perform
+and record manual screen-reader reading-order and announcement checks, keyboard-only workflows,
+400% zoom/reflow, and representative browser/assistive-technology combinations with real content.
 
 ## Key-free evaluations
 
@@ -69,10 +86,14 @@ uv run python evals/run_evals.py --threshold 0.90
 
 ## Continuous integration
 
-The checked-in workflow installs locked dependencies, then runs lint, formatting, strict typing,
-tests, offline evaluations, and package builds across the supported Python versions. Remote CI
-status is established only after the project is published and the workflow succeeds on that remote;
-the presence of the workflow file alone is not remote proof.
+The checked-in workflow installs locked dependencies and runs tests on Python 3.11, 3.12, and
+3.13. Python 3.12 additionally runs lint, formatting, strict typing, offline evaluations, and the
+package build; separate jobs run the Playwright/axe accessibility gate, Windows checks, and delivery
+smokes. Remote CI status is established only after the workflow succeeds on the remote; the
+presence of the workflow file alone is not remote proof.
+
+See [Clean-clone v0.3.0 evidence](clean-clone-v0.3.0.md) for the immutable release baseline and its
+explicit provider and accessibility boundaries.
 
 ## Live evaluation boundary
 

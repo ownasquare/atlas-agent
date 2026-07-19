@@ -7,12 +7,12 @@ Atlas keeps extensions explicit: a tool may run without becoming trusted evidenc
 | Change | Primary files | Minimum proof |
 | --- | --- | --- |
 | Custom tool | Your extension module and runtime entry point | Schema/output unit test and registry test |
-| Built-in tool | `tools/<name>.py` and `tools/registry.py` | Tool, registry, graph, and safety tests |
-| Evidence | Tool bundle `evidence_extractors`, `graph.py` | Positive extraction and unregistered-output tests |
-| Model provider | `pyproject.toml`, `config.py`, `.env.example` | Missing/configured readiness and lazy-client tests |
-| Memory backend | `memory.py`, runtime or Studio wiring | Persistence, user isolation, redaction, and CRUD tests |
-| API capability | `schemas.py`, `api.py` | Success, validation, authorization boundary, and failure tests |
-| Browser feature | `static/index.html`, `static/app.js`, `static/styles.css` | Static safety contract and rendered keyboard/mobile proof |
+| Built-in tool | `src/atlas_agent/tools/<name>.py` and `src/atlas_agent/tools/registry.py` | Tool, registry, graph, and safety tests |
+| Evidence | Tool bundle `evidence_extractors`, `src/atlas_agent/graph.py` | Positive extraction and unregistered-output tests |
+| Model provider | `pyproject.toml`, `src/atlas_agent/config.py`, `.env.example` | Missing/configured readiness and lazy-client tests |
+| Memory backend | `src/atlas_agent/memory.py`, runtime or Studio wiring | Persistence, user isolation, redaction, and CRUD tests |
+| API capability | `src/atlas_agent/schemas.py`, `src/atlas_agent/api.py` | Success, validation, authorization boundary, and failure tests |
+| Browser feature | `src/atlas_agent/static/index.html`, `src/atlas_agent/static/app.js`, `src/atlas_agent/static/styles.css` | Static safety contract and rendered keyboard/mobile proof |
 
 ## Add a tool
 
@@ -70,19 +70,29 @@ Atlas uses LangChain's provider-qualified model format. For a custom provider:
 3. After the package and credential are configured, set `ATLAS_CUSTOM_MODEL_CONFIGURED=true` to opt into readiness. Unknown providers remain blocked by default so the workspace cannot falsely claim it is ready.
 4. Add tests for missing credentials, configured readiness, lazy construction, and sanitized failures. Live provider checks remain separate, opt-in proof.
 
-For a non-LangChain model or different models per role, implement the five async methods on `AgentBrain` in `brain.py` and pass that implementation to `open_runtime(brain=...)`.
+For a non-LangChain model or different models per role, implement the five async methods on
+`AgentBrain` in `src/atlas_agent/brain.py` and pass that implementation to
+`open_runtime(brain=...)`.
 
 ## Replace saved vector memory
 
-Implement the public `MemoryStore` protocol in `memory.py`: `add`, `search`, `list`, `delete`, and `clear`. Every operation must remain scoped by `user_id`; writes must preserve redaction and bounded `MemoryCandidate` / `MemoryRecord` contracts.
+Implement the public `MemoryStore` protocol in `src/atlas_agent/memory.py`: `add`, `search`,
+`list`, `delete`, and `clear`. Every operation must remain scoped by `user_id`; writes must preserve
+redaction and bounded `MemoryCandidate` / `MemoryRecord` contracts.
 
-Pass an instance to `open_runtime(memory=...)`. If LangGraph Studio should use it too, replace the memory construction in `studio.py`. Prove restart persistence, duplicate handling, cross-user isolation, secret redaction/drop behavior, and API CRUD before enabling the backend by default.
+Pass an instance to `open_runtime(memory=...)`. If LangGraph Studio should use it too, replace the
+memory construction in `src/atlas_agent/studio.py`. Prove restart persistence, duplicate handling,
+cross-user isolation, secret redaction/drop behavior, and API CRUD before enabling the backend by
+default.
 
 Conversation memory is separate: replacing saved vector memory does not replace the LangGraph checkpointer or its `(user_id, thread_id)` namespace.
 
 ## Add an API or browser feature
 
-Start with a strict request/response model in `schemas.py`. Add the route in `create_app()` and test success plus bounded validation and failure responses with a deterministic runtime override. Keep server-derived authorization as a prerequisite before public hosting.
+Start with a strict request/response model in `src/atlas_agent/schemas.py`. Add the route in
+`create_app()` in `src/atlas_agent/api.py` and test success plus bounded validation and failure
+responses with a deterministic runtime override. Keep server-derived authorization as a
+prerequisite before public hosting.
 
 The dependency-free browser uses `textContent`/DOM nodes rather than raw-model `innerHTML`. Add the smallest markup and state needed, keep technical detail behind progressive disclosure, provide keyboard focus and readable error/empty/loading states, and update the deterministic UI fixture. Validate desktop and mobile behavior in the browser in addition to static source tests.
 

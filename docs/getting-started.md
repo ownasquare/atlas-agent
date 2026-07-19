@@ -3,12 +3,32 @@
 This guide takes a local checkout from configuration to one successful Atlas task. Atlas is not a
 hosted service; all application state stays in directories you configure on the local machine.
 
+> **Package-name warning:** Atlas is not published on PyPI. `pip install atlas-agent` installs an
+> unrelated project. Use the tagged source checkout below. The
+> [GitHub Releases page](https://github.com/ownasquare/atlas-agent/releases) provides immutable
+> source snapshots and build artifacts for verification, not a separate installation workflow.
+
 ## Prerequisites
 
 - Python 3.11, 3.12, or 3.13
 - [uv](https://docs.astral.sh/uv/)
-- An API key for the model provider you choose
+- An API key for the model provider you choose, required only before your first task
 - Docker Desktop or Docker Engine only if you explicitly enable Python analysis
+
+## Install from GitHub
+
+The source checkout is recommended because it includes the locked dependencies, examples, tests,
+and complete documentation:
+
+```bash
+git clone --branch v0.3.1 https://github.com/ownasquare/atlas-agent.git
+cd atlas-agent
+```
+
+Contributors who intentionally want unreleased work can switch to `main` after reading
+[Contributing](../CONTRIBUTING.md). The supported setup below targets v0.3.1 or later.
+
+Do not substitute a package with the same name from PyPI.
 
 ## Four-step setup
 
@@ -57,6 +77,12 @@ From the repository root:
    contact the model provider, initialize vector memory, or prove path writability. When Docker is
    selected, it checks the command, daemon, and expected local image. Use
    `uv run atlas doctor --json` for structured local diagnostics.
+
+   No key yet? You can still run the doctor, start the server, review settings, inspect local files,
+   and manage saved context. The workspace shows **Setup needed** and disables task submission.
+   `atlas run`, `atlas chat`, and `atlas resume` stop with concise setup guidance; task API requests
+   return a structured `ModelSetupRequired` response in v0.3.1 and later. Add the requested key,
+   restart Atlas, and rerun the doctor.
 
 4. Start Atlas.
 

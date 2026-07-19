@@ -118,6 +118,21 @@ def settings(tmp_path: Path) -> Settings:
         _env_file=None,
         data_dir=tmp_path / "data",
         workspace_dir=tmp_path / "workspace",
+        model="fixture:deterministic",
+        custom_model_configured=True,
+        memory_enabled=True,
+        code_execution_backend="disabled",
+    )
+
+
+def unconfigured_settings(tmp_path: Path) -> Settings:
+    return Settings(
+        _env_file=None,
+        data_dir=tmp_path / "data",
+        workspace_dir=tmp_path / "workspace",
+        model="openai:gpt-4.1-mini",
+        OPENAI_API_KEY="",
+        TAVILY_API_KEY="api-test-secret",
         memory_enabled=True,
         code_execution_backend="disabled",
     )
@@ -284,6 +299,76 @@ def test_chat_and_thread_state_contracts(tmp_path: Path) -> None:
     assert response.json()["artifacts"] == ["report.md"]
     assert thread.json()["values"]["user_id"] == "alice"
     assert invalid.status_code == 422
+
+
+def test_task_start_endpoints_fail_fast_with_typed_model_setup_guidance(
+    tmp_path: Path,
+) -> None:
+    app = create_app(unconfigured_settings(tmp_path), runtime_override=FakeRuntime())
+    requests = [
+        (
+            "/api/chat",
+            {"message": "Complete the brief", "user_id": "alice", "thread_id": "thread-a"},
+        ),
+        (
+            "/api/chat/stream",
+            {"message": "Complete the brief", "user_id": "alice", "thread_id": "thread-a"},
+        ),
+        (
+            "/api/resume",
+            {
+                "user_id": "alice",
+                "thread_id": "thread-a",
+                "response": {"interrupt_id": "interrupt-1", "action": "approve"},
+            },
+        ),
+        (
+            "/api/resume/stream",
+            {
+                "user_id": "alice",
+                "thread_id": "thread-a",
+                "response": {"interrupt_id": "interrupt-1", "action": "approve"},
+            },
+        ),
+    ]
+    expected_detail = {
+        "type": "ModelSetupRequired",
+        "message": "Atlas needs model setup before it can start or resume a task.",
+        "action": "Add OPENAI_API_KEY to .env, then restart Atlas.",
+        "doctor": "uv run atlas doctor",
+    }
+
+    with TestClient(app) as client:
+        responses = [client.post(path, json=payload) for path, payload in requests]
+
+    for response in responses:
+        assert response.status_code == 503
+        assert response.json()["detail"] == expected_detail
+        assert "api-test-secret" not in response.text
+
+
+def test_setup_independent_api_surfaces_remain_available_without_a_model(
+    tmp_path: Path,
+) -> None:
+    runtime = FakeRuntime()
+    workspace = WorkspaceFiles(tmp_path / "workspace")
+    workspace.write("report.md", "# Report\n\nReady for preview.")
+    runtime.tool_bundle = SimpleNamespace(workspace=workspace)
+    app = create_app(unconfigured_settings(tmp_path), runtime_override=runtime)
+
+    with TestClient(app) as client:
+        health = client.get("/api/health")
+        root = client.get("/")
+        graph = client.get("/api/graph")
+        workspace_listing = client.get("/api/workspace")
+        memories = client.get("/api/memories", params={"user_id": "local-user"})
+
+    assert health.status_code == 200
+    assert health.json()["model_configured"] is False
+    assert root.status_code == 200
+    assert graph.status_code == 200
+    assert workspace_listing.status_code == 200
+    assert memories.status_code == 200
 
 
 def test_chat_rejects_a_new_run_on_a_paused_thread(tmp_path: Path) -> None:

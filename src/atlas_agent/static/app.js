@@ -166,6 +166,15 @@ function renderMarkdown(content, container) {
     .replaceAll("\r\n", "\n")
     .replaceAll("\r", "\n")
     .split("\n");
+  const headingDepths = lines
+    .map(function headingDepth(line) {
+      const match = line.match(/^(#{1,3})\s+/);
+      return match ? match[1].length : null;
+    })
+    .filter(function knownHeading(depth) {
+      return depth !== null;
+    });
+  const shallowestHeading = headingDepths.length ? Math.min(...headingDepths) : 1;
   container.replaceChildren();
   let index = 0;
   while (index < lines.length) {
@@ -194,7 +203,7 @@ function renderMarkdown(content, container) {
 
     const heading = line.match(/^(#{1,3})\s+(.+)$/);
     if (heading) {
-      const level = Math.min(5, heading[1].length + 2);
+      const level = Math.min(6, 3 + heading[1].length - shallowestHeading);
       const title = node("h" + String(level));
       appendInlineMarkdown(title, heading[2]);
       container.append(title);
@@ -296,11 +305,14 @@ function setRunAvailability() {
 function setRunning(running, label) {
   if (running) setTaskView("active");
   state.running = running;
-  elements.task.disabled = running;
+  elements.task.disabled = false;
+  elements.task.readOnly = running;
+  elements.task.setAttribute("aria-readonly", String(running));
   elements.runStatus.textContent = label || (running ? "Working" : "Ready");
   elements.timelinePanel.classList.toggle("is-running", running);
   elements.main.setAttribute("aria-busy", String(running));
   setRunAvailability();
+  if (running) elements.task.focus({ preventScroll: true });
 }
 
 function setIdentityLocked(locked) {
@@ -537,6 +549,7 @@ function renderResult(result) {
     setPaused();
   } else {
     const completed = result.status === "completed";
+    const restoreApprovalFocus = state.approvalReturnFocus instanceof HTMLElement;
     state.approval = null;
     setRunning(false, statusLabel(result.status));
     setIdentityLocked(false);
@@ -545,6 +558,9 @@ function renderResult(result) {
     announce(completed ? "Task complete. The result is ready." : "The task needs review.");
     loadWorkspace();
     if (completed) loadMemories();
+    if (!restoreApprovalFocus) {
+      (finalAnswer ? elements.answerPanel : elements.task).focus({ preventScroll: true });
+    }
   }
   loadRecentTasks();
 }
@@ -590,6 +606,7 @@ function failRun(message) {
     state.runIdentity = null;
   }
   showTaskError(message || "Atlas could not complete this task. You can try again.");
+  if (!state.approval) elements.task.focus({ preventScroll: true });
   loadRecentTasks();
 }
 
@@ -1221,6 +1238,32 @@ function connectDisclosure(disclosure) {
   });
 }
 
+function trapApprovalFocus(event) {
+  if (event.key !== "Tab" || !elements.approval.open) return;
+  const focusable = Array.from(
+    elements.approval.querySelectorAll(
+      "summary, button:not(:disabled), a[href], input:not(:disabled), textarea:not(:disabled), [tabindex]:not([tabindex='-1'])",
+    ),
+  ).filter(function visibleControl(control) {
+    return control.getClientRects().length > 0;
+  });
+  if (!focusable.length) {
+    event.preventDefault();
+    elements.approval.focus();
+    return;
+  }
+  const first = focusable[0];
+  const last = focusable[focusable.length - 1];
+  const active = document.activeElement;
+  if (event.shiftKey && (active === first || !elements.approval.contains(active))) {
+    event.preventDefault();
+    last.focus();
+  } else if (!event.shiftKey && active === last) {
+    event.preventDefault();
+    first.focus();
+  }
+}
+
 async function copyText(content, successMessage) {
   try {
     await navigator.clipboard.writeText(content);
@@ -1281,6 +1324,7 @@ elements.approval.addEventListener("cancel", function keepDecisionOpen(event) {
   announce("Choose Don’t allow or Allow once to continue.");
   elements.reject.focus();
 });
+elements.approval.addEventListener("keydown", trapApprovalFocus);
 elements.refreshMemory.addEventListener("click", loadMemories);
 elements.clearMemory.addEventListener("click", clearMemories);
 elements.refreshWorkspace.addEventListener("click", loadWorkspace);

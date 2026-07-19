@@ -74,8 +74,8 @@ def test_workspace_shell_uses_plain_language_and_progressive_disclosure() -> Non
     assert "User namespace" not in html
     assert "Give Atlas a mission" not in html
     assert "Run mission" not in html
-    assert 'href="/static/styles.css?v=0.3.0"' in html
-    assert 'src="/static/app.js?v=0.3.0"' in html
+    assert 'href="/static/styles.css?v=0.3.1"' in html
+    assert 'src="/static/app.js?v=0.3.1"' in html
 
 
 def test_setup_guidance_matches_the_default_and_optional_model_providers() -> None:
@@ -148,6 +148,9 @@ def test_workspace_styles_support_two_themes_focus_and_reduced_motion() -> None:
     assert "@media (max-width: 700px)" in css
     assert "@media (prefers-reduced-motion: reduce)" in css
     assert "--control-height: 44px" in css
+    assert "--control-border:" in css
+    assert "min-width: 320px" not in css
+    assert ".main-workspace:focus-visible" not in css
     assert "font-size: 11px" not in css
     recent_clear = re.search(r"\.section-heading \.recent-clear\s*\{(?P<body>.*?)\}", css, re.S)
     assert recent_clear is not None
@@ -222,6 +225,8 @@ def test_result_markdown_uses_safe_dom_nodes_and_fixture_exercises_supported_blo
     assert 'node("pre")' in renderer
     assert 'node("code"' in renderer
     assert 'node("h" + String(level))' in renderer
+    assert "shallowestHeading" in renderer
+    assert "3 + heading[1].length - shallowestHeading" in renderer
     assert "const list = node(tag)" in renderer
     assert "appendInlineMarkdown" in renderer
     assert "document.createTextNode" in inline
@@ -231,6 +236,25 @@ def test_result_markdown_uses_safe_dom_nodes_and_fixture_exercises_supported_blo
     assert '"## Fixture result\\n\\n"' in fixture
     assert "[LangGraph overview]" in fixture
     assert '"```text\\nstatus: complete\\n```"' in fixture
+
+
+def test_task_focus_is_preserved_during_work_and_moves_to_the_next_action() -> None:
+    html = _read("index.html")
+    javascript = _read("app.js")
+    set_running = _function_body(javascript, "setRunning")
+    render_result = _function_body(javascript, "renderResult")
+    fail_run = _function_body(javascript, "failRun")
+    focus_trap = _function_body(javascript, "trapApprovalFocus")
+
+    assert re.search(r'id="answerPanel"[^>]*\btabindex="-1"', html, re.S)
+    assert "elements.task.readOnly = running" in set_running
+    assert 'setAttribute("aria-readonly", String(running))' in set_running
+    assert "elements.task.focus" in set_running
+    assert "elements.answerPanel" in render_result and ".focus(" in render_result
+    assert "elements.task.focus" in fail_run
+    assert 'event.key !== "Tab"' in focus_trap
+    assert "elements.approval.contains(active)" in focus_trap
+    assert 'elements.approval.addEventListener("keydown", trapApprovalFocus)' in javascript
 
 
 def test_task_errors_are_announced_once_and_cleared_for_a_new_task() -> None:

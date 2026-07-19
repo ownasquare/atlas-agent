@@ -11,7 +11,8 @@ governed by the [Code of Conduct](CODE_OF_CONDUCT.md).
 
 ## Development setup
 
-You need Python 3.11–3.13 and [uv](https://docs.astral.sh/uv/).
+You need Python 3.11–3.13 and [uv](https://docs.astral.sh/uv/). Node.js 18 or newer and npm are
+needed only when you change or validate the rendered workspace; CI uses Node.js 22.
 
 macOS/Linux:
 
@@ -32,6 +33,13 @@ uv run atlas doctor
 Credentials are not required for deterministic tests. Code execution is disabled by default; see
 [Getting started](docs/getting-started.md) before opting in to Docker.
 
+For a workspace or accessibility change, install the locked browser-test dependencies once:
+
+```bash
+npm ci
+npx playwright install chromium
+```
+
 ## Make a change
 
 1. Add or update a focused test for deterministic behavior.
@@ -45,6 +53,8 @@ make eval
 uv build
 ```
 
+For a rendered-workspace change, also run `make test-accessibility`.
+
 The equivalent portable commands, including on Windows PowerShell, are:
 
 ```powershell
@@ -56,8 +66,12 @@ uv run python evals/run_evals.py --threshold 1.0
 uv build
 ```
 
+The portable browser-gate command is `npm run test:e2e:accessibility`.
+
 Use Ruff for formatting and linting and keep strict MyPy checks green. New end-to-end browser tests
-belong in Playwright; do not add Cypress E2E tests.
+belong in Playwright; do not add Cypress E2E tests. The Playwright/axe gate is automated regression
+evidence, not a formal accessibility-conformance claim; record any manual assistive-technology
+checks separately.
 
 ## Extension changes
 

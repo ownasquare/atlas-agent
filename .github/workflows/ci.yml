@@ -51,6 +51,32 @@ jobs:
         if: matrix.python-version == '3.12'
         run: uv build
 
+  accessibility:
+    name: Accessibility E2E
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+      - uses: actions/setup-node@v6
+        with:
+          node-version: "22"
+          cache: npm
+      - name: Install uv
+        uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b # v8.1.0
+        with:
+          version: "0.11.29"
+          enable-cache: true
+      - name: Install locked Python dependencies
+        run: uv sync --locked --all-extras --dev
+      - name: Install locked browser-test dependencies
+        run: npm ci
+      - name: Install Chromium and system dependencies
+        run: npx playwright install --with-deps chromium
+      - name: Run accessibility end-to-end tests
+        run: npm run test:e2e:accessibility
+
   windows:
     name: Windows Python 3.12
     runs-on: windows-latest

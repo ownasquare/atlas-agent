@@ -3,6 +3,26 @@
 Notable user-facing changes are recorded here. Atlas follows semantic versioning while its public
 interfaces continue to mature.
 
+## [Unreleased]
+
+## [0.3.1] - 2026-07-18
+
+### Added
+
+- A committed Playwright/axe browser gate for setup, task, approval, error, keyboard, theme, and
+  responsive workspace behavior.
+- Provider-aware setup preflight responses for the CLI and task API.
+
+### Changed
+
+- Keyless task starts now stop with concise setup guidance before model runtime construction.
+- The workspace preserves keyboard focus through working, success, error, and approval states and
+  improves control readability, contrast, narrow-screen reflow, and result heading structure.
+- Installation guidance now warns that the similarly named PyPI distribution is unrelated and
+  directs users to the supported tagged source checkout.
+- Runtime installation no longer includes the contributor toolchain by default; contributor setup
+  remains an explicit locked install.
+
 ## [0.3.0] - 2026-07-18
 
 ### Added

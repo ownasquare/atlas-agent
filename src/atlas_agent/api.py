@@ -45,6 +45,22 @@ def _workspace_files(runtime: AtlasRuntime) -> WorkspaceFiles:
     return workspace
 
 
+def _require_model_setup(settings: Settings) -> None:
+    """Return stable, secret-safe setup guidance before task execution."""
+    action = settings.model_setup_action
+    if action is None:
+        return
+    raise HTTPException(
+        status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+        detail={
+            "type": "ModelSetupRequired",
+            "message": "Atlas needs model setup before it can start or resume a task.",
+            "action": action,
+            "doctor": "uv run atlas doctor",
+        },
+    )
+
+
 def _sse(event: StreamEvent) -> str:
     return f"event: {event.event}\ndata: {json.dumps(event.data, ensure_ascii=False)}\n\n"
 
@@ -98,6 +114,7 @@ def create_app(
         request: ChatRequest,
         runtime: RuntimeDependency,
     ) -> RunResult:
+        _require_model_setup(active_settings)
         try:
             return await runtime.run(
                 message=request.message,
@@ -123,6 +140,8 @@ def create_app(
         request: ChatRequest,
         runtime: RuntimeDependency,
     ) -> StreamingResponse:
+        _require_model_setup(active_settings)
+
         async def generate() -> AsyncIterator[str]:
             async for event in runtime.stream(
                 message=request.message,
@@ -138,6 +157,7 @@ def create_app(
         request: ResumeRequest,
         runtime: RuntimeDependency,
     ) -> RunResult:
+        _require_model_setup(active_settings)
         try:
             return await runtime.resume(
                 user_id=request.user_id,
@@ -155,6 +175,8 @@ def create_app(
         request: ResumeRequest,
         runtime: RuntimeDependency,
     ) -> StreamingResponse:
+        _require_model_setup(active_settings)
+
         async def generate() -> AsyncIterator[str]:
             async for event in runtime.stream(
                 message=None,

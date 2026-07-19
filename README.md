@@ -9,8 +9,13 @@ Atlas combines a LangGraph workflow with web research, calculations, confined fi
 optional Docker-isolated Python, durable conversations, and user-scoped memory. Use the focused
 web workspace, the CLI, or the FastAPI interface without learning graph terminology first.
 
-> Atlas 0.3.0 is a local-first open-source project. It is not a hosted service and does not include
+> Atlas 0.3.1 is a local-first open-source project. It is not a hosted service and does not include
 > authentication. Keep it on a trusted machine or loopback network.
+
+> **Install from this repository only.** Atlas is **not published on PyPI**. The command
+> `pip install atlas-agent` installs an unrelated project. Use the tagged source checkout below;
+> official [GitHub releases](https://github.com/ownasquare/atlas-agent/releases) preserve immutable
+> source snapshots and build artifacts for verification.
 
 ## What you can do
 
@@ -23,10 +28,11 @@ web workspace, the CLI, or the FastAPI interface without learning graph terminol
 
 ## Local quickstart
 
-You need Python 3.11–3.13, [uv](https://docs.astral.sh/uv/), and an OpenAI API key.
+You need Python 3.11–3.13 and [uv](https://docs.astral.sh/uv/). A matching model-provider key is
+required to complete tasks, but not to install Atlas, inspect readiness, or open the workspace.
 
 ```bash
-git clone https://github.com/ownasquare/atlas-agent.git
+git clone --branch v0.3.1 https://github.com/ownasquare/atlas-agent.git
 cd atlas-agent
 ```
 
@@ -55,6 +61,10 @@ Then complete these four steps.
    ```bash
    uv run atlas doctor
    ```
+
+   If the selected provider is not ready, the doctor gives one safe next action. The workspace
+   remains available in **Setup needed** mode, while web, CLI, and API task starts stop before model
+   execution instead of returning a provider traceback.
 
 4. Start the workspace:
 
