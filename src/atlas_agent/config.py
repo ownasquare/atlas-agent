@@ -95,7 +95,7 @@ class Settings(BaseSettings):
 
     @property
     def vector_path(self) -> Path:
-        return self.data_dir / "chroma"
+        return self.data_dir / "memory"
 
     @property
     def sandbox_path(self) -> Path:

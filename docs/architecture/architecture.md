@@ -22,7 +22,7 @@ stateDiagram-v2
 
 | Node | Responsibility | Typed boundary |
 | --- | --- | --- |
-| `recall` | Semantic search in one user's memories | `list[str]` injected as untrusted context |
+| `recall` | Vector-similarity search in one user's memories | `list[str]` injected as untrusted context |
 | `plan` | Decompose task into ordered, testable steps | `TaskPlan` and `PlanStep` Pydantic schemas |
 | `agent` | Select the next tool or produce a draft | LangChain `AIMessage` and tool calls |
 | `tools` | Execute the registered tool contract | LangGraph `ToolNode`; JSON result messages |
@@ -48,16 +48,21 @@ The CLI, API, and direct Python callers all enter through the same Pydantic requ
 
 The web workspace keeps a small versioned recent-task index in browser `localStorage` under `atlas-recent-tasks-v2`. It stores only the task reference, local profile, display title or excerpt, plain-language status, and updated time needed to render and reopen up to eight recent entries per profile. Malformed records are discarded, entries are de-duplicated by thread, and the oldest shortcut falls away when the bound is reached.
 
-This index is deliberately separate from durable state. SQLite checkpoints remain authoritative for messages, plans, results, interrupts, and resume behavior. Browser storage does not synchronize between devices, establish identity, authorize a thread, or preserve the transcript. Clearing it removes navigation convenience, not the task checkpoint, Chroma records, or workspace artifacts.
+This index is deliberately separate from durable state. SQLite checkpoints remain authoritative for messages, plans, results, interrupts, and resume behavior. Browser storage does not synchronize between devices, establish identity, authorize a thread, or preserve the transcript. Clearing it removes navigation convenience, not the task checkpoint, saved vector records, or workspace artifacts.
 
 ## Memory
 
 Atlas separates two concerns that are often incorrectly collapsed:
 
 1. **Thread memory** is the exact state and message history held in SQLite checkpoints.
-2. **Semantic memory** is a curated Chroma collection for cross-thread preferences, facts, project context, and constraints.
+2. **Saved vector memory** is a separate SQLite index for curated cross-thread preferences, facts, project context, and constraints.
 
-Semantic records carry `user_id`, source thread, category, importance, and timestamp. Every list/search/delete operation filters by user. Stable IDs upsert duplicate content. A redaction pass removes common key, bearer-token, and private-key patterns before persistence; a fully sensitive candidate is dropped.
+The local index hashes normalized word, word-pair, and character features into deterministic vectors
+and ranks them by cosine distance. It is network-free and useful for lightweight similarity recall;
+it is not a claim of model-level semantic understanding. Records carry `user_id`, source thread,
+category, importance, and timestamp. Every list/search/delete operation filters by user. Stable IDs
+upsert duplicate content. A redaction pass removes common key, bearer-token, and private-key
+patterns before vectorization or persistence; a fully sensitive candidate is dropped.
 
 ## Model boundary
 

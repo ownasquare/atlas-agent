@@ -109,12 +109,19 @@ default.
 
 By default, Atlas uses:
 
-- `.atlas/data` for SQLite checkpoints and vector memory;
+- `.atlas/data/checkpoints.sqlite` for exact task checkpoints;
+- `.atlas/data/memory` for the SQLite vector index of saved context;
 - `.atlas/workspace` for task-created files;
 - browser local storage for recent-task shortcuts and the theme choice.
 
 Clearing browser storage does not delete checkpoints, files, or vector memory. Do not commit `.env`
 or `.atlas` contents.
+
+Atlas 0.3.0 replaces the pre-release Chroma backend. Existing bytes under
+`<ATLAS_DATA_DIR>/chroma` are left untouched but are not imported automatically; re-save any
+context you still want Atlas to recall. The new index is stored under `<ATLAS_DATA_DIR>/memory`
+and requires no embedding download or separate cache volume. The default `ATLAS_DATA_DIR` is
+`.atlas/data`.
 
 ## Next guides
 

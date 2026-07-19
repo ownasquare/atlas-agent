@@ -22,6 +22,7 @@ def test_settings_create_only_owned_directories(tmp_path: Path) -> None:
     settings.ensure_directories()
 
     assert settings.checkpoint_path == tmp_path / "data" / "checkpoints.sqlite"
+    assert settings.vector_path == tmp_path / "data" / "memory"
     assert settings.vector_path.is_dir()
     assert settings.sandbox_path.is_dir()
     assert settings.thread_lock_dir.is_dir()

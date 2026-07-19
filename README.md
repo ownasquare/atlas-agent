@@ -98,9 +98,10 @@ work that does not need Python.
 request → recall → plan → work with tools → review → result → remember
 ```
 
-The graph has bounded action and review loops. SQLite stores exact task state; Chroma stores only
-curated cross-task context. Successful tool messages—not model prose—establish confirmed sources
-and created files.
+The graph has bounded action and review loops. Separate SQLite files store exact task state and a
+small vector index of curated cross-task context. The index uses deterministic feature hashing, so
+it needs no network call or embedding-model download. Successful tool messages—not model prose—
+establish confirmed sources and created files.
 
 | Capability | Default behavior |
 | --- | --- |
@@ -109,7 +110,7 @@ and created files.
 | Files | Confined to `.atlas/workspace`; hidden paths and traversal rejected |
 | Python | Disabled until Docker is explicitly enabled |
 | Conversation state | Durable local SQLite checkpoints |
-| Saved context | User-scoped Chroma memory |
+| Saved context | User-scoped SQLite vector memory |
 
 ## Useful commands
 
@@ -149,7 +150,7 @@ commands listed in [Contributing](CONTRIBUTING.md).
 - Python requires explicit approval and the Docker backend; keep it disabled when unnecessary.
 - Recent-task shortcuts are browser-local, not account history or an authorization boundary.
 - Local tests do not prove live-provider quality, hosted behavior, or production readiness.
-- Chroma may download its local embedding model on the first semantic-memory operation.
+- Saved context stays in a separate local SQLite vector index and is scoped by local profile.
 
 See [Troubleshooting](docs/troubleshooting.md) before opening an issue. Please use the private path
 described in [Security](SECURITY.md) for vulnerabilities or sensitive reports.

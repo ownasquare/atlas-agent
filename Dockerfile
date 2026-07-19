@@ -22,8 +22,8 @@ RUN uv sync --frozen --no-dev --no-install-project --extra anthropic
 
 COPY src ./src
 RUN uv sync --frozen --no-dev --extra anthropic \
-    && mkdir -p /app/.atlas/data /app/.atlas/workspace /app/.cache/chroma \
-    && chown -R atlas:atlas /app/.atlas /app/.cache
+    && mkdir -p /app/.atlas/data /app/.atlas/workspace \
+    && chown -R atlas:atlas /app/.atlas
 
 USER atlas
 EXPOSE 8000

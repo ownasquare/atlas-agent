@@ -26,7 +26,7 @@ app = typer.Typer(
     help="Durable LangGraph agent for researched, calculated, and artifact-producing work.",
     no_args_is_help=True,
 )
-memory_app = typer.Typer(help="Inspect or clear user-scoped semantic memory.")
+memory_app = typer.Typer(help="Inspect or clear user-scoped saved vector context.")
 app.add_typer(memory_app, name="memory")
 console = Console()
 
@@ -350,7 +350,7 @@ async def _clear_memories(user_id: str) -> None:
 
 @memory_app.command("clear")
 def memory_clear(user_id: Annotated[str, typer.Option("--user")] = "local-user") -> None:
-    """Delete every semantic memory for one user namespace."""
+    """Delete every saved memory for one user namespace."""
     if not typer.confirm(f"Delete all memories for {user_id}?", default=False):
         raise typer.Abort()
     asyncio.run(_clear_memories(user_id))

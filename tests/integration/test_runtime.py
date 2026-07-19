@@ -7,6 +7,7 @@ from langchain_core.messages import AIMessage, AnyMessage, ToolMessage
 from pydantic import ValidationError
 
 from atlas_agent.config import Settings
+from atlas_agent.memory import VectorMemory
 from atlas_agent.runtime import AtlasRuntime, ThreadConflictError, open_runtime
 from atlas_agent.schemas import (
     ApprovalResponse,
@@ -127,12 +128,12 @@ class ConcurrencyTrackingBrain(DeterministicBrain):
             self.active_plans -= 1
 
 
-def make_settings(tmp_path: Path) -> Settings:
+def make_settings(tmp_path: Path, *, memory_enabled: bool = False) -> Settings:
     return Settings(
         _env_file=None,
         data_dir=tmp_path / "data",
         workspace_dir=tmp_path / "workspace",
-        memory_enabled=False,
+        memory_enabled=memory_enabled,
         require_code_approval=False,
         require_overwrite_approval=False,
         code_execution_backend="disabled",
@@ -160,6 +161,23 @@ async def test_runtime_runs_real_graph_with_sqlite_checkpoint(tmp_path: Path) ->
     assert snapshot["next"] == []
     assert len(snapshot["values"]["messages"]) == 3
     assert settings.checkpoint_path.is_file()
+
+
+async def test_runtime_opens_the_default_sqlite_vector_memory(tmp_path: Path) -> None:
+    settings = make_settings(tmp_path, memory_enabled=True)
+    brain = DeterministicBrain()
+    bundle = build_tool_bundle(settings, search_provider=NoNetworkSearch())
+
+    async with open_runtime(settings, brain=brain, tool_bundle=bundle) as runtime:
+        result = await runtime.run(
+            message="Prepare a memory-enabled brief",
+            user_id="alice",
+            thread_id="thread-memory",
+        )
+        assert isinstance(runtime.memory, VectorMemory)
+
+    assert result.status == RunStatus.COMPLETED
+    assert (settings.vector_path / "atlas_memories.sqlite3").is_file()
 
 
 async def test_same_thread_accumulates_conversation_but_users_are_isolated(tmp_path: Path) -> None:
